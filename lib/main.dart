@@ -5,6 +5,6 @@ import 'package:flutter/rendering.dart';
 void main(List<String> args) {
   // For layout constrain
   // Creating UI will be easy
-  debugPaintSizeEnabled = true;
+  //debugPaintSizeEnabled = true;
   runApp(App());
 }

@@ -16,6 +16,8 @@ class Home extends StatefulWidget {
 class HomeState extends State<Home> with TickerProviderStateMixin {
   Animation<double> catAnimation;
   AnimationController catController;
+  Animation<double> boxAnimation;
+  AnimationController boxController;
 
   @override
   void initState() {
@@ -39,6 +41,32 @@ class HomeState extends State<Home> with TickerProviderStateMixin {
         curve: Curves.easeIn,
       ),
     );
+
+    boxController = AnimationController(
+      duration: Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    // Radians value
+    boxAnimation = Tween(
+      begin: pi * 0.1,
+      end: pi * 0.15,
+    ).animate(
+      CurvedAnimation(
+        parent: boxController,
+        curve: Curves.linear,
+      ),
+    );
+
+    boxAnimation.addStatusListener((AnimationStatus status) {
+      if (status == AnimationStatus.completed) {
+        boxController.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        boxController.forward();
+      }
+    });
+
+    boxController.forward();
   }
 
   @override
@@ -55,6 +83,8 @@ class HomeState extends State<Home> with TickerProviderStateMixin {
             children: <Widget>[
               buildCatAnimation(),
               buildBox(),
+              buildLeftFlap(),
+              buildRightFlap(),
             ],
           ),
         ),
@@ -65,8 +95,12 @@ class HomeState extends State<Home> with TickerProviderStateMixin {
   void onTap() {
     if (catController.status == AnimationStatus.completed) {
       catController.reverse();
+      // If cat is going inside box then start box animation
+      boxController.forward();
     } else if (catController.status == AnimationStatus.dismissed) {
       catController.forward();
+      // If cat is comint out of the box then stop box animation
+      boxController.stop();
     }
   }
 
@@ -105,15 +139,42 @@ class HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget buildLeftFlap() {
     return Positioned(
-      left: 3.0,
-      child: Transform.rotate(
+      left: 0.0,
+      child: AnimatedBuilder(
+        animation: boxAnimation,
         child: Container(
           width: 10.0,
           height: 125.0,
           color: Colors.brown,
         ),
-        angle: pi / 0.6, //90 degree ..radians
-        alignment: Alignment.topLeft,
+        builder: (BuildContext context, Widget child) {
+          return Transform.rotate(
+            child: child,
+            angle: boxAnimation.value,
+            alignment: Alignment.topLeft,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget buildRightFlap() {
+    return Positioned(
+      right: 0.0,
+      child: AnimatedBuilder(
+        animation: boxAnimation,
+        child: Container(
+          width: 10.0,
+          height: 125.0,
+          color: Colors.brown,
+        ),
+        builder: (BuildContext context, Widget child) {
+          return Transform.rotate(
+            child: child,
+            angle: -boxAnimation.value,
+            alignment: Alignment.topRight,
+          );
+        },
       ),
     );
   }
